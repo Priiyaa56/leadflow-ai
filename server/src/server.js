@@ -7,6 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
+app.get("/", (req, res) => {
+  res.json({ message: "LeadFlow AI API is running" });
+});
+
 app.use("/api", routes);
 
 app.use((error, req, res, next) => {
