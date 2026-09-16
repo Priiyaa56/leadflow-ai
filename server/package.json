@@ -9,6 +9,7 @@
   "dependencies": {
     "@google/genai": "^1.16.0",
     "@supabase/supabase-js": "^2.57.0",
+    "@vercel/node": "^13.0.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
