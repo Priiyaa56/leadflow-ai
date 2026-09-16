@@ -19,3 +19,8 @@ app.use((error, req, res, next) => {
 });
 
 module.exports = app;
+if (require.main === module) {
+  app.listen(5000, () => {
+    console.log("LeadFlow AI API running on http://localhost:5000");
+  });
+}

@@ -1,7 +1,9 @@
 const supabase = require("../db");
 
 function ensureDb() {
-  if (!supabase) throw new Error("Supabase environment variables are not configured.");
+  if (!supabase) {
+    throw new Error("Supabase environment variables are not configured.");
+  }
 }
 
 async function createLead(lead, analysis) {
@@ -59,7 +61,10 @@ async function updateLead(id, updates) {
 
   const { data, error } = await supabase
     .from("leads")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString()
+    })
     .eq("id", id)
     .select()
     .single();
@@ -73,12 +78,59 @@ async function createTask(leadId, task) {
 
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ lead_id: leadId, ...task })
+    .insert({
+      lead_id: leadId,
+      ...task
+    })
     .select()
     .single();
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+// Get all tasks
+async function listTasks() {
+  ensureDb();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// Mark task as completed
+async function completeTask(id) {
+  ensureDb();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({
+      status: "completed"
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// Delete a lead
+async function deleteLead(id) {
+  ensureDb();
+
+  const { error } = await supabase
+    .from("leads")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  return { success: true };
 }
 
 async function listActivity() {
@@ -100,5 +152,8 @@ module.exports = {
   getLead,
   updateLead,
   createTask,
+  listTasks,
+  completeTask,
+  deleteLead,
   listActivity
 };

@@ -1,14 +1,19 @@
 const express = require("express");
 const { leadInputSchema } = require("./validation");
 const { analyzeLead } = require("./aiService");
+
 const {
   createLead,
   listLeads,
   getLead,
   updateLead,
   createTask,
+  listTasks,
+  completeTask,
+  deleteLead,
   listActivity
 } = require("./services/leadService");
+
 const { logActivity } = require("./services/activityService");
 
 const router = express.Router();
@@ -17,10 +22,14 @@ router.get("/health", (req, res) => {
   res.json({ ok: true, service: "LeadFlow AI API" });
 });
 
+
+// CREATE LEAD
 router.post("/leads", async (req, res) => {
   try {
     const lead = leadInputSchema.parse(req.body);
+
     const analysis = await analyzeLead(lead);
+
     const saved = await createLead(lead, analysis);
 
     await logActivity(saved.id, "lead_analyzed", {
@@ -35,6 +44,8 @@ router.post("/leads", async (req, res) => {
   }
 });
 
+
+// GET ALL LEADS
 router.get("/leads", async (req, res) => {
   try {
     res.json(await listLeads());
@@ -43,6 +54,8 @@ router.get("/leads", async (req, res) => {
   }
 });
 
+
+// GET SINGLE LEAD
 router.get("/leads/:id", async (req, res) => {
   try {
     res.json(await getLead(req.params.id));
@@ -51,10 +64,14 @@ router.get("/leads/:id", async (req, res) => {
   }
 });
 
+
+// REGENERATE AI ANALYSIS
 router.post("/leads/:id/regenerate", async (req, res) => {
   try {
     const lead = await getLead(req.params.id);
+
     const analysis = await analyzeLead(lead);
+
     const updated = await updateLead(req.params.id, analysis);
 
     await logActivity(req.params.id, "follow_up_regenerated", {
@@ -67,6 +84,8 @@ router.post("/leads/:id/regenerate", async (req, res) => {
   }
 });
 
+
+// APPROVE FOLLOW-UP
 router.post("/leads/:id/approve", async (req, res) => {
   try {
     const updated = await updateLead(req.params.id, {
@@ -82,13 +101,16 @@ router.post("/leads/:id/approve", async (req, res) => {
   }
 });
 
+
+// CREATE TASK
 router.post("/leads/:id/task", async (req, res) => {
   try {
     const task = await createTask(req.params.id, {
       title: req.body.title || "Follow up with lead",
       description: req.body.description || "",
       priority: req.body.priority || "medium",
-      due_date: req.body.due_date || null
+      due_date: req.body.due_date || null,
+      status: "pending"
     });
 
     await logActivity(req.params.id, "task_created", {
@@ -101,6 +123,42 @@ router.post("/leads/:id/task", async (req, res) => {
   }
 });
 
+
+// GET ALL TASKS
+router.get("/tasks", async (req, res) => {
+  try {
+    res.json(await listTasks());
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// COMPLETE TASK
+router.post("/tasks/:id/complete", async (req, res) => {
+  try {
+    const task = await completeTask(req.params.id);
+
+    res.json(task);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+// DELETE LEAD
+router.delete("/leads/:id", async (req, res) => {
+  try {
+    await deleteLead(req.params.id);
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+// ACTIVITY
 router.get("/activity", async (req, res) => {
   try {
     res.json(await listActivity());
@@ -108,5 +166,6 @@ router.get("/activity", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = router;

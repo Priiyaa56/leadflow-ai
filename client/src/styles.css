@@ -1428,3 +1428,373 @@ footer span {
     padding: 0;
   }
 }
+
+/* =========================================================
+   GLOBAL SMOOTH SCROLLING
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+section {
+  scroll-margin-top: 28px;
+}
+
+/* =========================================================
+   TASKS SECTION
+========================================================= */
+
+.tasks-panel {
+  scroll-margin-top: 28px;
+}
+
+.tasks-panel .section-heading {
+  margin-bottom: 24px;
+}
+
+.tasks-panel .count-pill {
+  margin-left: auto;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* =========================================================
+   TASK CARD
+========================================================= */
+
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(30, 30, 60, 0.08);
+}
+
+.task-card.completed {
+  opacity: 0.72;
+}
+
+/* =========================================================
+   TASK ICON
+========================================================= */
+
+.task-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(102, 87, 255, 0.1);
+  color: #6657ff;
+}
+
+[data-theme="dark"] .task-icon {
+  background: rgba(102, 87, 255, 0.16);
+}
+
+/* =========================================================
+   TASK CONTENT
+========================================================= */
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  margin: 0 0 5px;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.task-card.completed .task-title {
+  text-decoration: line-through;
+}
+
+.task-lead {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.task-lead strong {
+  color: var(--text);
+}
+
+.task-description {
+  margin: 0;
+  max-width: 800px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* =========================================================
+   TASK META
+========================================================= */
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.task-priority,
+.task-due,
+.task-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.task-priority {
+  background: rgba(100, 100, 120, 0.08);
+  color: var(--muted);
+}
+
+.task-priority.high {
+  color: #d64545;
+  background: rgba(214, 69, 69, 0.1);
+}
+
+.task-priority.medium {
+  color: #a66d00;
+  background: rgba(214, 163, 55, 0.12);
+}
+
+.task-priority.low {
+  color: #16855b;
+  background: rgba(22, 133, 91, 0.1);
+}
+
+.task-due {
+  background: rgba(100, 100, 120, 0.08);
+  color: var(--muted);
+}
+
+.task-status.pending {
+  color: #6657ff;
+  background: rgba(102, 87, 255, 0.1);
+}
+
+.task-status.completed {
+  color: #16855b;
+  background: rgba(22, 133, 91, 0.1);
+}
+
+/* =========================================================
+   COMPLETE BUTTON
+========================================================= */
+
+.task-action {
+  flex-shrink: 0;
+}
+
+.task-complete-button {
+  min-width: 125px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 16px;
+  background: #6657ff;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    background 0.2s ease;
+}
+
+.task-complete-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.task-complete-button.completed {
+  background: #16a36d;
+  cursor: default;
+}
+
+.task-complete-button:disabled {
+  cursor: default;
+}
+
+/* =========================================================
+   EMPTY TASK STATE
+========================================================= */
+
+.tasks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 180px;
+  padding: 30px 20px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  color: var(--muted);
+}
+
+.tasks-empty strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.tasks-empty span {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tasks-empty-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 13px;
+  background: rgba(102, 87, 255, 0.1);
+  color: #6657ff;
+}
+
+/* =========================================================
+   DELETE LEAD BUTTON
+========================================================= */
+
+.delete-lead-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid rgba(220, 70, 70, 0.3);
+  border-radius: 10px;
+  background: transparent;
+  color: #dc4646;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.delete-lead-button:hover:not(:disabled) {
+  background: rgba(220, 70, 70, 0.08);
+  border-color: rgba(220, 70, 70, 0.5);
+  transform: translateY(-1px);
+}
+
+.delete-lead-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   DETAIL SECTION
+========================================================= */
+
+#detail-section {
+  scroll-margin-top: 28px;
+}
+
+#leads-section {
+  scroll-margin-top: 28px;
+}
+
+#activity-section {
+  scroll-margin-top: 28px;
+}
+
+#new-lead-section {
+  scroll-margin-top: 28px;
+}
+
+/* =========================================================
+   RESPONSIVE TASKS
+========================================================= */
+
+@media (max-width: 800px) {
+  .task-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .task-content {
+    width: calc(100% - 62px);
+  }
+
+  .task-action {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .task-complete-button {
+    width: 100%;
+  }
+
+  .delete-lead-button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   MOBILE ACTIONS
+========================================================= */
+
+@media (max-width: 600px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+
+  .task-card {
+    padding: 16px;
+    gap: 13px;
+  }
+
+  .task-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+}

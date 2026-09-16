@@ -30,15 +30,18 @@ function Icon({ name, size = 18 }) {
         <path d="m19 14-.7 2.3L16 17l2.3.7L19 20l.7-2.3L22 17l-2.3-.7L19 14Z" />
       </>
     ),
+
     sun: (
       <>
         <circle cx="12" cy="12" r="4" />
         <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
       </>
     ),
+
     moon: (
       <path d="M20.8 15.1A8.7 8.7 0 0 1 8.9 3.2 8.8 8.8 0 1 0 20.8 15.1Z" />
     ),
+
     users: (
       <>
         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -46,24 +49,29 @@ function Icon({ name, size = 18 }) {
         <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
       </>
     ),
+
     trend: (
       <>
         <path d="M3 17 9 11l4 4 8-9" />
         <path d="M15 6h6v6" />
       </>
     ),
+
     clock: (
       <>
         <circle cx="12" cy="12" r="9" />
         <path d="M12 7v5l3 2" />
       </>
     ),
+
     check: <path d="m5 12 4 4L19 6" />,
+
     plus: (
       <>
         <path d="M12 5v14M5 12h14" />
       </>
     ),
+
     refresh: (
       <>
         <path d="M20 11a8 8 0 0 0-14.9-4L3 10" />
@@ -72,30 +80,44 @@ function Icon({ name, size = 18 }) {
         <path d="M21 19v-5h-5" />
       </>
     ),
+
     task: (
       <>
         <rect x="4" y="3" width="16" height="18" rx="2" />
         <path d="M8 7h8M8 11h8M8 15h5" />
       </>
     ),
+
     arrow: (
       <>
         <path d="M5 12h14" />
         <path d="m13 6 6 6-6 6" />
       </>
     ),
+
     mail: (
       <>
         <rect x="3" y="5" width="18" height="14" rx="2" />
         <path d="m3 7 9 6 9-6" />
       </>
     ),
+
     building: (
       <>
         <path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h4a2 2 0 0 1 2 2v10" />
         <path d="M8 7h4M8 11h4M8 15h4M8 19h4" />
       </>
     ),
+
+    trash: (
+      <>
+        <path d="M3 6h18" />
+        <path d="M8 6V4h8v2" />
+        <path d="M19 6l-1 15H6L5 6" />
+        <path d="M10 11v6M14 11v6" />
+      </>
+    ),
+
     zap: <path d="m13 2-9 12h7l-1 8 9-12h-7l1-8Z" />,
   };
 
@@ -106,6 +128,7 @@ function App() {
   const [form, setForm] = useState(initialForm);
   const [leads, setLeads] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -113,25 +136,51 @@ function App() {
     () => localStorage.getItem("leadflow-theme") === "dark",
   );
 
+  /* =========================
+     THEME
+  ========================= */
+
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     localStorage.setItem("leadflow-theme", dark ? "dark" : "light");
   }, [dark]);
 
+  /* =========================
+     SMOOTH SCROLL
+  ========================= */
+
+  function scrollToSection(id) {
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  }
+
+  /* =========================
+     REFRESH DATA
+  ========================= */
+
   async function refresh() {
     try {
-      const [leadData, activityData] = await Promise.all([
+      const [leadData, activityData, taskData] = await Promise.all([
         api.leads(),
         api.activity(),
+        api.tasks(),
       ]);
 
       setLeads(leadData);
       setActivity(activityData);
+      setTasks(taskData);
 
-      if (selected) {
-        const fresh = leadData.find((lead) => lead.id === selected.id);
-        if (fresh) setSelected(fresh);
-      }
+      setSelected((currentSelected) => {
+        if (!currentSelected) return null;
+
+        const fresh = leadData.find((lead) => lead.id === currentSelected.id);
+
+        return fresh || null;
+      });
     } catch (error) {
       setMessage(error.message);
     }
@@ -140,6 +189,10 @@ function App() {
   useEffect(() => {
     refresh();
   }, []);
+
+  /* =========================
+     STATS
+  ========================= */
 
   const stats = useMemo(
     () => ({
@@ -150,6 +203,14 @@ function App() {
     }),
     [leads],
   );
+
+  const pendingTasks = tasks.filter(
+    (task) => task.status !== "completed",
+  ).length;
+
+  /* =========================
+     FORM
+  ========================= */
 
   function updateField(event) {
     setForm({
@@ -173,7 +234,10 @@ function App() {
       setForm(initialForm);
       setSelected(created);
       setMessage("Lead analyzed successfully.");
+
       await refresh();
+
+      scrollToSection("detail-section");
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -181,18 +245,40 @@ function App() {
     }
   }
 
+  /* =========================
+     SELECT LEAD
+  ========================= */
+
+  function selectLead(lead) {
+    setSelected(lead);
+
+    scrollToSection("detail-section");
+  }
+
+  /* =========================
+     APPROVE
+  ========================= */
+
   async function approve() {
     if (!selected) return;
 
     try {
       const updated = await api.approve(selected.id);
+
       setSelected(updated);
       setMessage("Follow-up approved.");
+
       await refresh();
+
+      scrollToSection("detail-section");
     } catch (error) {
       setMessage(error.message);
     }
   }
+
+  /* =========================
+     REGENERATE
+  ========================= */
 
   async function regenerate() {
     if (!selected) return;
@@ -201,9 +287,13 @@ function App() {
 
     try {
       const updated = await api.regenerate(selected.id);
+
       setSelected(updated);
       setMessage("AI analysis regenerated.");
+
       await refresh();
+
+      scrollToSection("detail-section");
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -211,20 +301,81 @@ function App() {
     }
   }
 
+  /* =========================
+     CREATE TASK
+  ========================= */
+
   async function createTask() {
     if (!selected) return;
 
     try {
+      setLoading(true);
+
       await api.createTask(selected.id, {
         title: `Follow up with ${selected.name}`,
-        description: selected.recommended_action,
-        priority: selected.urgency,
+        description: selected.recommended_action || "Follow up with lead",
+        priority: selected.urgency || "medium",
+        due_date: null,
       });
 
-      setMessage("Task created.");
+      setMessage("Task created successfully.");
+
       await refresh();
+
+      scrollToSection("tasks-section");
     } catch (error) {
       setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* =========================
+     COMPLETE TASK
+  ========================= */
+
+  async function completeTask(taskId) {
+    try {
+      await api.completeTask(taskId);
+
+      setMessage("Task completed.");
+
+      await refresh();
+
+      scrollToSection("tasks-section");
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  /* =========================
+     DELETE LEAD
+  ========================= */
+
+  async function deleteSelectedLead() {
+    if (!selected) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the lead "${selected.name}"?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+
+      await api.deleteLead(selected.id);
+
+      setSelected(null);
+      setMessage("Lead deleted successfully.");
+
+      await refresh();
+
+      scrollToSection("leads-section");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -232,6 +383,10 @@ function App() {
     <div className="app-shell">
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
+
+      {/* =========================
+          HEADER
+      ========================= */}
 
       <header className="topbar">
         <div className="brand-wrap">
@@ -266,7 +421,11 @@ function App() {
       </header>
 
       <main>
-        <section className="hero-row">
+        {/* =========================
+            HERO
+        ========================= */}
+
+        <section className="hero-row" id="top-section">
           <div>
             <div className="eyebrow">
               <Icon name="zap" size={13} />
@@ -290,6 +449,10 @@ function App() {
             Human review before outreach
           </div>
         </section>
+
+        {/* =========================
+            STATS
+        ========================= */}
 
         <section className="stats">
           <Stat
@@ -324,17 +487,26 @@ function App() {
           />
         </section>
 
+        {/* =========================
+            MESSAGE
+        ========================= */}
+
         {message && (
           <div className="notice">
             <span>
               <Icon name="check" size={16} />
             </span>
+
             {message}
           </div>
         )}
 
+        {/* =========================
+            NEW LEAD + LEAD PIPELINE
+        ========================= */}
+
         <div className="workspace-grid">
-          <section className="panel form-panel">
+          <section className="panel form-panel" id="new-lead-section">
             <div className="section-heading">
               <div className="heading-icon">
                 <Icon name="plus" size={19} />
@@ -431,7 +603,7 @@ function App() {
             </form>
           </section>
 
-          <section className="panel leads-panel">
+          <section className="panel leads-panel" id="leads-section">
             <div className="section-heading between">
               <div className="heading-icon purple">
                 <Icon name="users" size={19} />
@@ -452,7 +624,7 @@ function App() {
                     selected?.id === lead.id ? "active" : ""
                   }`}
                   key={lead.id}
-                  onClick={() => setSelected(lead)}
+                  onClick={() => selectLead(lead)}
                 >
                   <div className="lead-avatar">
                     {lead.name?.charAt(0)?.toUpperCase() || "L"}
@@ -492,8 +664,12 @@ function App() {
           </section>
         </div>
 
+        {/* =========================
+            LEAD DETAILS
+        ========================= */}
+
         {selected && (
-          <section className="panel detail-panel">
+          <section className="panel detail-panel" id="detail-section">
             <div className="detail-head">
               <div className="detail-title">
                 <div className="eyebrow">
@@ -564,7 +740,11 @@ function App() {
                 <p>{selected.follow_up_message}</p>
 
                 <div className="actions">
-                  <button className="primary-button compact" onClick={approve}>
+                  <button
+                    className="primary-button compact"
+                    onClick={approve}
+                    disabled={loading}
+                  >
                     <Icon name="check" size={16} />
                     Approve follow-up
                   </button>
@@ -578,9 +758,22 @@ function App() {
                     Regenerate
                   </button>
 
-                  <button className="secondary-button" onClick={createTask}>
+                  <button
+                    className="secondary-button"
+                    onClick={createTask}
+                    disabled={loading}
+                  >
                     <Icon name="task" size={16} />
                     Create task
+                  </button>
+
+                  <button
+                    className="delete-lead-button"
+                    onClick={deleteSelectedLead}
+                    disabled={loading}
+                  >
+                    <Icon name="trash" size={16} />
+                    Delete lead
                   </button>
                 </div>
               </div>
@@ -588,7 +781,111 @@ function App() {
           </section>
         )}
 
-        <section className="panel activity-panel">
+        {/* =========================
+            TASKS
+        ========================= */}
+
+        <section className="panel tasks-panel" id="tasks-section">
+          <div className="section-heading between">
+            <div className="heading-icon">
+              <Icon name="task" size={19} />
+            </div>
+
+            <div>
+              <h2>Tasks</h2>
+              <p>Follow-up tasks created from your leads.</p>
+            </div>
+
+            <span className="count-pill">{pendingTasks} pending</span>
+          </div>
+
+          <div className="task-list">
+            {tasks.map((task) => {
+              const lead = leads.find((item) => item.id === task.lead_id);
+
+              const completed = task.status === "completed";
+
+              return (
+                <div
+                  className={`task-card ${completed ? "completed" : ""}`}
+                  key={task.id}
+                >
+                  <div className="task-icon">
+                    <Icon name={completed ? "check" : "task"} size={19} />
+                  </div>
+
+                  <div className="task-content">
+                    <h3 className="task-title">{task.title}</h3>
+
+                    <p className="task-lead">
+                      Lead: <strong>{lead?.name || "Unknown lead"}</strong>
+                    </p>
+
+                    {task.description && (
+                      <p className="task-description">{task.description}</p>
+                    )}
+
+                    <div className="task-meta">
+                      <span
+                        className={`task-priority ${task.priority || "medium"}`}
+                      >
+                        Priority: {task.priority || "medium"}
+                      </span>
+
+                      {task.due_date && (
+                        <span className="task-due">
+                          Due: {new Date(task.due_date).toLocaleDateString()}
+                        </span>
+                      )}
+
+                      <span
+                        className={`task-status ${
+                          completed ? "completed" : "pending"
+                        }`}
+                      >
+                        {completed ? "Completed" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="task-action">
+                    <button
+                      className={`task-complete-button ${
+                        completed ? "completed" : ""
+                      }`}
+                      onClick={() => !completed && completeTask(task.id)}
+                      disabled={completed}
+                    >
+                      <Icon name={completed ? "check" : "check"} size={16} />
+
+                      {completed ? "Completed" : "Complete"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {!tasks.length && (
+              <div className="tasks-empty">
+                <div className="tasks-empty-icon">
+                  <Icon name="task" size={22} />
+                </div>
+
+                <strong>No tasks yet</strong>
+
+                <span>
+                  Create a task from a lead's recommended action to see it here.
+                </span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* =========================
+            AI ACTIVITY
+        ========================= */}
+
+        <section className="panel activity-panel" id="activity-section">
           <div className="section-heading">
             <div className="heading-icon green">
               <Icon name="trend" size={19} />
@@ -629,6 +926,10 @@ function App() {
   );
 }
 
+/* =========================
+   INPUT
+========================= */
+
 function Input({ label, name, ...props }) {
   return (
     <label className="field-label">
@@ -637,6 +938,10 @@ function Input({ label, name, ...props }) {
     </label>
   );
 }
+
+/* =========================
+   STAT
+========================= */
 
 function Stat({ label, value, icon, hint, tone = "blue" }) {
   return (
@@ -656,6 +961,10 @@ function Stat({ label, value, icon, hint, tone = "blue" }) {
   );
 }
 
+/* =========================
+   METRIC
+========================= */
+
 function Metric({ label, value, emphasis }) {
   return (
     <div className="metric">
@@ -665,6 +974,10 @@ function Metric({ label, value, emphasis }) {
     </div>
   );
 }
+
+/* =========================
+   INFO BLOCK
+========================= */
 
 function InfoBlock({ title, children }) {
   return (
