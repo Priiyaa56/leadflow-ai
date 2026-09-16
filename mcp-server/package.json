@@ -1,0 +1,14 @@
+{
+  "name": "leadflow-ai-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@supabase/supabase-js": "^2.57.0",
+    "dotenv": "^17.2.1"
+  }
+}
