@@ -8,14 +8,36 @@ const ai = config.geminiApiKey
 const leadSchema = {
   type: "object",
   properties: {
-    score: { type: "integer", description: "0-100 lead quality score" },
-    intent: { type: "string", enum: ["high", "medium", "low"] },
-    urgency: { type: "string", enum: ["high", "medium", "low"] },
-    summary: { type: "string" },
-    services: { type: "array", items: { type: "string" } },
-    recommended_action: { type: "string" },
-    follow_up_subject: { type: "string" },
-    follow_up_message: { type: "string" }
+    score: {
+      type: "integer",
+      description: "0-100 lead quality score"
+    },
+    intent: {
+      type: "string",
+      enum: ["high", "medium", "low"]
+    },
+    urgency: {
+      type: "string",
+      enum: ["high", "medium", "low"]
+    },
+    summary: {
+      type: "string"
+    },
+    services: {
+      type: "array",
+      items: {
+        type: "string"
+      }
+    },
+    recommended_action: {
+      type: "string"
+    },
+    follow_up_subject: {
+      type: "string"
+    },
+    follow_up_message: {
+      type: "string"
+    }
   },
   required: [
     "score",
@@ -56,17 +78,51 @@ Rules:
 - Never invent information.
 `;
 
-  const response = await ai.models.generateContent({
-    model: config.geminiModel,
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: leadSchema,
-      temperature: 0.2
-    }
-  });
+  const maxRetries = 3;
 
-  return JSON.parse(response.text);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: config.geminiModel,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: leadSchema,
+          temperature: 0.2
+        }
+      });
+
+      return JSON.parse(response.text);
+
+    } catch (error) {
+      console.error(
+        `Gemini attempt ${attempt} failed:`,
+        error.message
+      );
+
+      const status = error.status || error.code;
+
+      // Retry temporary Gemini/API errors
+      if (
+        attempt === maxRetries ||
+        ![429, 500, 502, 503, 504].includes(Number(status))
+      ) {
+        throw error;
+      }
+
+      // Wait 2 seconds after first failure,
+      // 4 seconds after second failure
+      const delay = attempt * 2000;
+
+      console.log(
+        `Retrying Gemini in ${delay / 1000} seconds...`
+      );
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, delay)
+      );
+    }
+  }
 }
 
 module.exports = { analyzeLead };
