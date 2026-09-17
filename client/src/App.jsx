@@ -523,7 +523,7 @@ function App() {
                 <Input
                   name="name"
                   label="Name"
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder="e.g. Damon Salvatore"
                   value={form.name}
                   onChange={updateField}
                   required
@@ -533,7 +533,7 @@ function App() {
                   name="email"
                   label="Email"
                   type="email"
-                  placeholder="rahul@company.com"
+                  placeholder="Damon@company.com"
                   value={form.email}
                   onChange={updateField}
                   required
