@@ -16,8 +16,6 @@ The workflow logic lives in application code and the AI API.
 - JavaScript
 - Git/GitHub
 
-Google currently documents a free Gemini API tier with free input/output tokens for eligible models, subject to rate limits. Check the current limits before heavy use.
-Supabase currently offers a free plan with a 500 MB database and 1 GB file storage.
 
 ## Project structure
 
@@ -61,10 +59,4 @@ Task creation
 ↓
 Dashboard + activity log
 
-## Important
-
-This project is a learning/portfolio implementation. AI output must be reviewed by a human before real customer communication. Do not place private customer data into a development account unless you understand the provider's data-use terms.
-
-## Resume skills demonstrated
-
-React, REST APIs, Node.js, Express, PostgreSQL, Supabase, LLM API integration, structured outputs, AI workflow design, tool calling concepts, MCP, human-in-the-loop systems, validation, error handling, logging, Git/GitHub.
+Live demo : https://client-delta-five-29.vercel.app/
